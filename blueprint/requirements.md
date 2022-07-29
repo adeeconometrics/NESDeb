@@ -9,3 +9,8 @@ Non-Functional Requirements
 - [ ] Cross-platform support for different OS and major compilers  
 - [ ] Modern C++ (C++17)
 - [ ] Clang linting 
+
+Language Specific Decisions
+- [ ] Use of `std::variant` over inheritance 
+- [ ] Use of `std::unique_ptr` for owning `ptr`
+- [ ] Use raw `ptr` or `std::weak_ptr` for non-owning ptr
