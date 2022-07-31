@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+
 namespace IORegisters {
     constexpr uint16_t PPUCTRL = 0x2000;
     constexpr uint16_t PPUMASK = 0x2001;
