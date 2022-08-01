@@ -3,23 +3,22 @@
 
 /**
  * @brief Contains 6502 CPU Emulation
- * 
+ *
  */
 
 #include "Bus.h"
+#include <vector>
 #include <cstdint>
 #include <string_view>
-
-namespace CPU {
 
 class Bus;
 
 class CPU final {
 public:
-  CPU();
-  ~CPU();
+  CPU() = default;
+  ~CPU() = default;
 
-  auto connect(const Bus *bus) -> void;
+  auto connect(Bus *bus) -> void;
   auto read(uint16_t addr) -> uint8_t;
   auto write(uint16_t addr, uint8_t data) -> void;
 
@@ -34,7 +33,7 @@ public:
   auto ZPX() -> uint8_t;
   auto REL() -> uint8_t;
   auto ABX() -> uint8_t;
-  auto IMD() -> uint8_t;
+  auto IND() -> uint8_t;
   auto IZY() -> uint8_t;
 
   // legal opcodes defined in the NES
@@ -110,7 +109,7 @@ public:
   enum class Flags : uint16_t {
     C = (1 << 0), // Carry Bit
     Z = (1 << 1), // Zero
-    I = (1 << 2), // Disable Interrupts
+    I = (1 << 2), // Interrupt Disable
     D = (1 << 3), // Decimal Mode (unused in this implementation)
     B = (1 << 4), // Break
     U = (1 << 5), // Unused
@@ -125,22 +124,31 @@ public:
   uint16_t pc = 0x0000;  // Program Counter
   uint8_t status = 0x00; // Status Register
 
-private:
-  auto get_flag(Flags flag) -> uint8_t;
-  auto set_flag(Flags flag, bool value) -> void;
+public:
+  friend auto operator|(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t;
+  friend auto operator|(int lhs, CPU::Flags rhs) -> uint16_t; 
+  friend auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t;
+  friend auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t;
+  friend auto operator~(CPU::Flags rhs) -> uint16_t;
 
 private:
-  uint8_t fetched = 0x00;
+  auto get_flag(CPU::Flags flag) -> uint8_t;
+  auto set_flag(CPU::Flags flag, bool value) -> void;
+
+private:
+  uint8_t fetched = 0x00;     // for storing the fetched data
+  uint16_t addr_abs = 0x0000; // for storing different locations in memory based
+                              // on the addressing mode
+  uint16_t addr_rel = 0x00;   // for storing info to jump into relative address
+  uint8_t opcode = 0x00; // for storing the opcode that is currently executing
+  uint8_t cycles = 0;    // for storing the cycles for the instruction execution
+
   uint16_t temp = 0x0000;
-  uint16_t addr_abs = 0x0000;
-  uint16_t addr_rel = 0x00;
-  uint8_t opcode = 0x00;
-  uint8_t cycles = 0;
   uint32_t clock_count = 0;
 
   struct Instruction final {
     std::string_view name;
-    uint8_t (CPU::* operate)(void) = nullptr;
+    uint8_t (CPU::*operate)(void) = nullptr;
     uint8_t (CPU::*address_mode)(void) = nullptr;
     uint8_t cycles{};
   };
@@ -279,7 +287,6 @@ private:
   };
 
   Bus *m_bus{nullptr};
-}
-}
+};
 
 #endif // __CPU_H__

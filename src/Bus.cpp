@@ -17,7 +17,8 @@ auto Bus::write(uint16_t address, uint8_t data) -> void {
 
 auto Bus::read(uint16_t address, bool is_read_only) -> uint8_t {
   if (address >= 0x0000 && address <= 0xffff) {
-    return m_ram[data];
+    return m_ram[address];
   }
+  is_read_only;
   return 0x00;
 }

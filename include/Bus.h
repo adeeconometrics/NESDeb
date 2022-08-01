@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <array>
 
+class CPU;
+
 class Bus final {
 private:
 
