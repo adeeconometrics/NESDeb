@@ -3,9 +3,13 @@
 Simple implementation of NES Emulator. 
 
 
-Pre-requisites to built the Emulator: 
+---
 
-```Bash
-$ sudo apt install cmake 
-$ sudo apt-get libsmfl-dev
-```
+Dependencies
+- [olcPixelGameEngine.h](https://github.com/OneLoneCoder/olcPixelGameEngine)
+
+---
+References: 
+- https://www.nesdev.org/wiki/Nesdev_Wiki
+- https://github.com/OneLoneCoder/olcPixelGameEngine
+- https://www.youtube.com/c/javidx9
