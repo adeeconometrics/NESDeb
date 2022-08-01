@@ -10,11 +10,11 @@ auto CPU::write(uint16_t addr, uint8_t data) -> void {
   m_bus->write(addr, data);
 }
 
-auto get_flag(CPU::Flags flag) -> uint8_t {
+auto CPU::get_flag(CPU::Flags flag) -> uint8_t {
   return ((status & flag) > 0) ? 1 : 0;
 }
 
-auto set_flag(CPU::Flags flag, bool value) -> void {
+auto CPU::set_flag(CPU::Flags flag, bool value) -> void {
   if (value) {
     status |= flag;
   } else {
