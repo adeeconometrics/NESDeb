@@ -1,10 +1,11 @@
 #ifndef __BUS_H__
 #define __BUS_H__
 
-#include "CPU.h"
-
 #include <cstdint>
 #include <array>
+#include <memory>
+
+#include "CPU.h"
 
 class CPU;
 
@@ -12,7 +13,7 @@ class Bus final {
 private:
 
 public: 
-    CPU m_cpu;
+    std::unique_ptr<CPU> m_cpu;
     std::array<uint8_t, 64*1024> m_ram; // 64kB
 
 public:
@@ -20,7 +21,7 @@ public:
   ~Bus();
 
   auto write(uint16_t address, uint8_t data) -> void;
-  auto read(uint16_t address, bool is_read_only = false) -> uint8_t;
+  auto read(uint16_t address) -> uint8_t;
 };
 
 

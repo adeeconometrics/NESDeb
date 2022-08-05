@@ -1,4 +1,6 @@
 #include "CPU.h"
+#include <map>
+#include <string>
 #include <cstdint>
 #include <type_traits>
 
@@ -23,32 +25,41 @@ auto CPU::set_flag(CPU::Flags flag, bool value) -> void {
 }
 
 // Instruction Operator Overloads
-auto operator|(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t {
-  return static_cast<uint16_t>(
+auto operator|(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t {
+  return static_cast<uint8_t>(
       static_cast<std::underlying_type_t<CPU::Flags>>(lhs) |
       static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
 }
 
-auto operator|(int lhs, CPU::Flags rhs) -> uint16_t {
-  return static_cast<uint16_t>(
-      static_cast<std::underlying_type_t<CPU::Flags>>(lhs) |
-      static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
+auto operator|(uint8_t lhs, CPU::Flags rhs) -> uint8_t {
+  return lhs | static_cast<uint8_t>(
+                   static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
 }
 
-auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t {
-  return static_cast<uint16_t>(
+auto operator|=(uint8_t &lhs, CPU::Flags rhs) -> void {
+  lhs = lhs | static_cast<uint8_t>(
+                  static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
+}
+
+auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t {
+  return static_cast<uint8_t>(
       static_cast<std::underlying_type_t<CPU::Flags>>(lhs) &
       static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
 }
 
-auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t {
-  return static_cast<uint16_t>(
+auto operator&(uint8_t lhs, CPU::Flags rhs) -> uint8_t {
+  return lhs & static_cast<uint8_t>(
+      static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
+}
+
+auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t {
+  return static_cast<uint8_t>(
       static_cast<std::underlying_type_t<CPU::Flags>>(lhs) ^
       static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
 }
 
-auto operator~(CPU::Flags rhs) -> uint16_t {
-  return ~static_cast<uint16_t>(
+auto operator~(CPU::Flags rhs) -> uint8_t {
+  return ~static_cast<uint8_t>(
       static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
 }
 
@@ -760,8 +771,8 @@ auto CPU::clock() -> void {
     pc += 1;
 
     cycles = lookup[opcode].cycles;
-    uint8_t cycle_1 = (this->*lookup[opcode].address_mode)(); 
-    uint8_t cycle_2 = (this->*lookup[opcode].operate)(); 
+    uint8_t cycle_1 = (this->*lookup[opcode].address_mode)();
+    uint8_t cycle_2 = (this->*lookup[opcode].operate)();
 
     cycles += (cycle_1 & cycle_2);
   }
@@ -837,4 +848,194 @@ auto CPU::fetch() -> uint8_t {
     fetched = read(addr_abs);
   }
   return fetched;
+}
+
+auto CPU::is_complete() -> bool {
+  return cycles == 0;
+}
+
+auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::string> {
+  uint8_t high = 0x00;
+  uint8_t low = 0x00;
+  uint8_t value = 0x00;
+  uint8_t opcode = 0x00;
+
+  uint16_t line_addr = 0x0000;
+
+  uint32_t addr = static_cast<uint32_t>(start);
+  uint32_t last_addr = static_cast<uint32_t>(stop);
+
+  std::map<uint16_t, std::string> result;
+
+  auto hex = [](uint32_t n, uint8_t d) {
+    std::string s(d, '0');
+    for (int i = d - 1; i >= 0; i--, n >>= 4)
+      s[i] = "0123456789ABCDEF"[n & 0xF];
+    return s;
+  };
+
+  while(addr <= last_addr) {
+    line_addr = addr;
+
+    std::string instruction = "$" + hex(addr, 4) + ": ";
+    opcode = m_bus->read(addr);
+    addr++;
+    instruction += lookup[opcode].name + " ";
+
+    // switch(lookup[opcode].address_mode) {
+    //   case &CPU::IMP: {
+    //     instruction += " {IMP}";
+    //   } break;
+      
+    //   case &CPU::IMM: {
+    //     value = m_bus->read(current_addr); 
+    //     current_addr++;
+    //     instruction += "#$" + hex(value, 2) + " {IMM}";
+    //   } break;
+      
+    //   case &CPU::ZP0: {
+    //     low = m_bus->read(current_addr); 
+    //     current_addr++;
+    //     high = 0x00;
+    //     instruction += "$" + hex(low, 2) + " {ZP0}";
+    //   } break;
+      
+    //   case &CPU::ZPX: {
+    //     low = m_bus-> read(current_addr);
+    //     current_addr++;
+    //     high = 0x00;
+    //     instruction += "$" + hex(low, 2) + ", X {ZPX}";
+    //   } break;
+
+    //   case &CPU::ZPY: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = 0x00;
+    //     instruction += "$" + hex(low, 2) + ", Y {ZPY}";
+    //   } break;
+      
+    //   case &CPU::IZX: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = 0x00;
+    //     instruction += "($" + hex(low, 2) + ", X) {IZX}";
+    //   } break;
+
+    //   case &CPU::IZY: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = 0x00;
+    //     instruction += "($" + hex(low, 2) + ", Y) {IZY}";
+    //   } break;
+
+    //   case &CPU::ABS: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = m_bus->read(current_addr);
+    //     current_addr++;
+    //     instruction += "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + " {ABS}";
+    //   } break;
+
+    //   case &CPU::ABX: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = m_bus->read(current_addr);
+    //     current_addr++;
+    //     instruction +=
+    //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", X {ABX}";
+    //   } break;
+
+    //   case &CPU::ABY: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = m_bus->read(current_addr);
+    //     current_addr++;
+    //     instruction +=
+    //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", Y {ABY}";
+    //   } break;
+
+    //   case &CPU::IND: {
+    //     low = m_bus->read(current_addr);
+    //     current_addr++;
+    //     high = m_bus->read(current_addr);
+    //     current_addr++;
+    //     instruction +=
+    //         "($" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ") {IND}";
+    //   } break;
+
+    //   case &CPU::REL: {
+    //     value = m_bus->read(current_addr);
+    //     current_addr++;
+    //     instruction += "$" + hex(value, 2) + " [$" + hex(current_addr + value, 4) + "] {REL}";
+    //   } break;
+
+    //   default: 
+    //     break;
+    // }
+
+    if (lookup[opcode].address_mode == &CPU::IMP) {
+      instruction += " {IMP}";
+    } else if (lookup[opcode].address_mode == &CPU::IMM) {
+      value = m_bus->read(addr);
+      addr++;
+      instruction += "#$" + hex(value, 2) + " {IMM}";
+    } else if (lookup[opcode].address_mode == &CPU::ZP0) {
+      low = m_bus->read(addr);
+      addr++;
+      high = 0x00;
+      instruction += "$" + hex(low, 2) + " {ZP0}";
+    } else if (lookup[opcode].address_mode == &CPU::ZPX) {
+      low = m_bus->read(addr);
+      addr++;
+      high = 0x00;
+      instruction += "$" + hex(low, 2) + ", X {ZPX}";
+    } else if (lookup[opcode].address_mode == &CPU::ZPY) {
+      low = m_bus->read(addr);
+      addr++;
+      high = 0x00;
+      instruction += "$" + hex(low, 2) + ", Y {ZPY}";
+    } else if (lookup[opcode].address_mode == &CPU::IZX) {
+      low = m_bus->read(addr);
+      addr++;
+      high = 0x00;
+      instruction += "($" + hex(low, 2) + ", X) {IZX}";
+    } else if (lookup[opcode].address_mode == &CPU::IZY) {
+      low = m_bus->read(addr);
+      addr++;
+      high = 0x00;
+      instruction += "($" + hex(low, 2) + "), Y {IZY}";
+    } else if (lookup[opcode].address_mode == &CPU::ABS) {
+      low = m_bus->read(addr);
+      addr++;
+      high = m_bus->read(addr);
+      addr++;
+      instruction += "$" + hex((uint16_t)(high << 8) | low, 4) + " {ABS}";
+    } else if (lookup[opcode].address_mode == &CPU::ABX) {
+      low = m_bus->read(addr);
+      addr++;
+      high = m_bus->read(addr);
+      addr++;
+      instruction += "$" + hex((uint16_t)(high << 8) | low, 4) + ", X {ABX}";
+    } else if (lookup[opcode].address_mode == &CPU::ABY) {
+      low = m_bus->read(addr);
+      addr++;
+      high = m_bus->read(addr);
+      addr++;
+      instruction += "$" + hex((uint16_t)(high << 8) | low, 4) + ", Y {ABY}";
+    } else if (lookup[opcode].address_mode == &CPU::IND) {
+      low = m_bus->read(addr);
+      addr++;
+      high = m_bus->read(addr);
+      addr++;
+      instruction += "($" + hex((uint16_t)(high << 8) | low, 4) + ") {IND}";
+    } else if (lookup[opcode].address_mode == &CPU::REL) {
+      value = m_bus->read(addr);
+      addr++;
+      instruction += "$" + hex(value, 2) + " [$" + hex(addr + value, 4) + "] {REL}";
+    }
+
+    result[line_addr] = instruction;
+  }
+
+  return result;
 }

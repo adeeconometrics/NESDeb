@@ -7,9 +7,11 @@
  */
 
 #include "Bus.h"
+
+#include <map>
+#include <string>
 #include <vector>
 #include <cstdint>
-#include <string_view>
 
 class Bus;
 
@@ -104,9 +106,11 @@ public:
   auto nmi() -> void;   // non-maskable interrupt
 
   auto fetch() -> uint8_t;
+  auto is_complete() -> bool;
+  auto disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::string>;
 
 public:
-  enum class Flags : uint16_t {
+  enum class Flags : uint8_t {
     C = (1 << 0), // Carry Bit
     Z = (1 << 1), // Zero
     I = (1 << 2), // Interrupt Disable
@@ -125,11 +129,13 @@ public:
   uint8_t status = 0x00; // Status Register
 
 public:
-  friend auto operator|(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t;
-  friend auto operator|(int lhs, CPU::Flags rhs) -> uint16_t; 
-  friend auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t;
-  friend auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint16_t;
-  friend auto operator~(CPU::Flags rhs) -> uint16_t;
+  friend auto operator|(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t;
+  friend auto operator|(uint8_t lhs, CPU::Flags rhs) -> uint8_t; 
+  friend auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t;
+  friend auto operator&(uint8_t lhs, CPU::Flags rhs) -> uint8_t; 
+  friend auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t;
+  friend auto operator~(CPU::Flags rhs) -> uint8_t;
+  friend auto operator|=(uint8_t& lhs, CPU::Flags rhs) -> void; 
 
 private:
   auto get_flag(CPU::Flags flag) -> uint8_t;
@@ -147,7 +153,7 @@ private:
   uint32_t clock_count = 0;
 
   struct Instruction final {
-    std::string_view name;
+    std::string name;
     uint8_t (CPU::*operate)(void) = nullptr;
     uint8_t (CPU::*address_mode)(void) = nullptr;
     uint8_t cycles{};
