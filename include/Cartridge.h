@@ -33,6 +33,8 @@ public:
   auto read_ppu(uint16_t address, uint8_t& data) -> bool;
   auto write_ppu(uint16_t address, uint8_t data) -> bool;
 
+  auto is_valid_image() -> bool; 
+
 private: 
 
   std::shared_ptr<Mapper> m_mapper;
@@ -42,5 +44,7 @@ private:
   uint8_t m_mapper_id{};
   uint8_t m_prg_banks{};
   uint8_t m_chr_banks{};
+
+  bool m_is_valid_image = false;
 };
 #endif // __CARTRIDGE_H__

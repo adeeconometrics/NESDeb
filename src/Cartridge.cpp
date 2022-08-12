@@ -43,6 +43,9 @@ Cartridge::Cartridge(const std::string &fname) {
                 m_mapper = std::make_shared<Mapper_000>(m_prg_banks, m_chr_banks);
                 break;
         }
+
+        m_is_valid_image = true; 
+        stream.close();
     }
 }
 
@@ -88,4 +91,8 @@ auto Cartridge::write_ppu(uint16_t address, uint8_t data) -> bool {
   }
 
   return false;
+}
+
+auto Cartridge::is_valid_image() -> bool { 
+    return m_is_valid_image;
 }
