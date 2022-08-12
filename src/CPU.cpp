@@ -6,10 +6,10 @@
 
 auto CPU::connect(Bus *bus) -> void { m_bus = bus; }
 
-auto CPU::read(uint16_t addr) -> uint8_t { return m_bus->read(addr); }
+auto CPU::read(uint16_t addr) -> uint8_t { return m_bus->read_cpu(addr); }
 
 auto CPU::write(uint16_t addr, uint8_t data) -> void {
-  m_bus->write(addr, data);
+  m_bus->write_cpu(addr, data);
 }
 
 auto CPU::get_flag(CPU::Flags flag) -> uint8_t {
@@ -878,7 +878,7 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     line_addr = addr;
 
     std::string instruction = "$" + hex(addr, 4) + ": ";
-    opcode = m_bus->read(addr);
+    opcode = m_bus->read_cpu(addr);
     addr++;
     instruction += lookup[opcode].name + " ";
 
@@ -888,13 +888,13 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //   } break;
       
     //   case &CPU::IMM: {
-    //     value = m_bus->read(current_addr); 
+    //     value = m_bus->read_cpu(current_addr); 
     //     current_addr++;
     //     instruction += "#$" + hex(value, 2) + " {IMM}";
     //   } break;
       
     //   case &CPU::ZP0: {
-    //     low = m_bus->read(current_addr); 
+    //     low = m_bus->read_cpu(current_addr); 
     //     current_addr++;
     //     high = 0x00;
     //     instruction += "$" + hex(low, 2) + " {ZP0}";
@@ -908,63 +908,63 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //   } break;
 
     //   case &CPU::ZPY: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     high = 0x00;
     //     instruction += "$" + hex(low, 2) + ", Y {ZPY}";
     //   } break;
       
     //   case &CPU::IZX: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     high = 0x00;
     //     instruction += "($" + hex(low, 2) + ", X) {IZX}";
     //   } break;
 
     //   case &CPU::IZY: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     high = 0x00;
     //     instruction += "($" + hex(low, 2) + ", Y) {IZY}";
     //   } break;
 
     //   case &CPU::ABS: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
-    //     high = m_bus->read(current_addr);
+    //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction += "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + " {ABS}";
     //   } break;
 
     //   case &CPU::ABX: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
-    //     high = m_bus->read(current_addr);
+    //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction +=
     //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", X {ABX}";
     //   } break;
 
     //   case &CPU::ABY: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
-    //     high = m_bus->read(current_addr);
+    //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction +=
     //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", Y {ABY}";
     //   } break;
 
     //   case &CPU::IND: {
-    //     low = m_bus->read(current_addr);
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
-    //     high = m_bus->read(current_addr);
+    //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction +=
     //         "($" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ") {IND}";
     //   } break;
 
     //   case &CPU::REL: {
-    //     value = m_bus->read(current_addr);
+    //     value = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction += "$" + hex(value, 2) + " [$" + hex(current_addr + value, 4) + "] {REL}";
     //   } break;
@@ -976,60 +976,60 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     if (lookup[opcode].address_mode == &CPU::IMP) {
       instruction += " {IMP}";
     } else if (lookup[opcode].address_mode == &CPU::IMM) {
-      value = m_bus->read(addr);
+      value = m_bus->read_cpu(addr);
       addr++;
       instruction += "#$" + hex(value, 2) + " {IMM}";
     } else if (lookup[opcode].address_mode == &CPU::ZP0) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
       high = 0x00;
       instruction += "$" + hex(low, 2) + " {ZP0}";
     } else if (lookup[opcode].address_mode == &CPU::ZPX) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
       high = 0x00;
       instruction += "$" + hex(low, 2) + ", X {ZPX}";
     } else if (lookup[opcode].address_mode == &CPU::ZPY) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
       high = 0x00;
       instruction += "$" + hex(low, 2) + ", Y {ZPY}";
     } else if (lookup[opcode].address_mode == &CPU::IZX) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
       high = 0x00;
       instruction += "($" + hex(low, 2) + ", X) {IZX}";
     } else if (lookup[opcode].address_mode == &CPU::IZY) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
       high = 0x00;
       instruction += "($" + hex(low, 2) + "), Y {IZY}";
     } else if (lookup[opcode].address_mode == &CPU::ABS) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
-      high = m_bus->read(addr);
+      high = m_bus->read_cpu(addr);
       addr++;
       instruction += "$" + hex((uint16_t)(high << 8) | low, 4) + " {ABS}";
     } else if (lookup[opcode].address_mode == &CPU::ABX) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
-      high = m_bus->read(addr);
+      high = m_bus->read_cpu(addr);
       addr++;
       instruction += "$" + hex((uint16_t)(high << 8) | low, 4) + ", X {ABX}";
     } else if (lookup[opcode].address_mode == &CPU::ABY) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
-      high = m_bus->read(addr);
+      high = m_bus->read_cpu(addr);
       addr++;
       instruction += "$" + hex((uint16_t)(high << 8) | low, 4) + ", Y {ABY}";
     } else if (lookup[opcode].address_mode == &CPU::IND) {
-      low = m_bus->read(addr);
+      low = m_bus->read_cpu(addr);
       addr++;
-      high = m_bus->read(addr);
+      high = m_bus->read_cpu(addr);
       addr++;
       instruction += "($" + hex((uint16_t)(high << 8) | low, 4) + ") {IND}";
     } else if (lookup[opcode].address_mode == &CPU::REL) {
-      value = m_bus->read(addr);
+      value = m_bus->read_cpu(addr);
       addr++;
       instruction += "$" + hex(value, 2) + " [$" + hex(addr + value, 4) + "] {REL}";
     }
