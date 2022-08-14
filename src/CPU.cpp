@@ -1031,7 +1031,7 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     } else if (lookup[opcode].address_mode == &CPU::REL) {
       value = m_bus->read_cpu(addr);
       addr++;
-      instruction += "$" + hex(value, 2) + " [$" + hex(addr + value, 4) + "] {REL}";
+      instruction += "$" + hex(value, 2) + " [$" + hex(addr + (int8_t)value, 4) + "] {REL}";
     }
 
     result[line_addr] = instruction;

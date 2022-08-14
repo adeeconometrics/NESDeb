@@ -15,23 +15,30 @@ Bus::Bus() : m_cpu(std::make_unique<CPU>()), m_ppu(std::make_unique<PPU>()) {
 Bus::~Bus() = default;
 
 auto Bus::write_cpu(uint16_t address, uint8_t data) -> void {
-  if (address >= 0x0000 && address <= 0xffff) {
+  if (m_cartridge -> write_cpu(address, data)){
+  // configure for cartridge address range       
+  }
+
+  else if (address >= 0x0000 && address <= 0xffff) {
     m_cpu_ram[address & 0x07ff] = data;
   }
 
-  if (address >= 0x2000 && address <= 0x3fff) {
+  else if (address >= 0x2000 && address <= 0x3fff) {
     (*m_ppu).write_cpu(address & 0x0007, data);
   }
 }
 
 auto Bus::read_cpu(uint16_t address) -> uint8_t {
   uint8_t data = 0x00;
+  if (m_cartridge -> write_cpu(address, data)){
+  // configure for cartridge address range       
+  }
 
-  if (address >= 0x0000 && address <= 0x1fff) {
+  else if (address >= 0x0000 && address <= 0x1fff) {
     return m_cpu_ram[address & 0x7ff]; // adjusted for RAM mirorring
   }
 
-  if (address >= 0x2000 && address <= 0x3fff) {
+  else if (address >= 0x2000 && address <= 0x3fff) {
     (*m_ppu).read_cpu(address & 0x0007, data);
   }
   return data;
