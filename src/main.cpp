@@ -7,171 +7,188 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 
-class CPUDemo : public olc::PixelGameEngine {
+class Demo_olc2C02 : public olc::PixelGameEngine
+{
 public:
-  CPUDemo() { sAppName = "CPU Demonstration"; }
+	Demo_olc2C02() { sAppName = "olc2C02 Demonstration"; }
 
-  Bus nes;
-  std::map<uint16_t, std::string> map_asm;
+private: 
+	// The NES
+	Bus m_nes;
+	std::shared_ptr<Cartridge> m_cart;
+	bool is_running = false;
+	float residual_time = 0.0f;
 
-  std::string hex(uint32_t n, uint8_t d) {
-    std::string s(d, '0');
-    for (int i = d - 1; i >= 0; i--, n >>= 4)
-      s[i] = "0123456789ABCDEF"[n & 0xF];
-    return s;
-  };
+private: 
+	// Support Utilities
+	std::map<uint16_t, std::string> map_asm;
 
-  void DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns) {
-    int nRamX = x;
+	std::string hex(uint32_t n, uint8_t d)
+	{
+		std::string s(d, '0');
+		for (int i = d - 1; i >= 0; i--, n >>= 4)
+			s[i] = "0123456789ABCDEF"[n & 0xF];
+		return s;
+	};
+
+	void DrawRam(int x, int y, uint16_t addr, int rows, int cols)
+	{
+    const int nRamX = x;
     int nRamY = y;
-    for (int row = 0; row < nRows; row++) {
-      std::string sOffset = "$" + hex(nAddr, 4) + ":";
-      for (int col = 0; col < nColumns; col++) {
-        sOffset += " " + hex(nes.read(nAddr), 2);
-        nAddr += 1;
-      }
-      DrawString(nRamX, nRamY, sOffset);
-      nRamY += 10;
-    }
-  }
+		for (int row = 0; row < rows; row++)
+		{
+			std::string str_offset = "$" + hex(addr, 4) + ":";
+			for (int col = 0; col < cols; col++)
+			{
+				str_offset += " " + hex(m_nes.read_cpu(addr, true), 2);
+				addr += 1;
+			}
+			DrawString(nRamX, nRamY, str_offset);
+			nRamY += 10;
+		}
+	}
 
-  void DrawCpu(int x, int y) {
-    std::string status = "STATUS: ";
+	void DrawCpu(int x, int y)
+	{
+   std::string status = "STATUS: ";
     DrawString(x, y, "STATUS:", olc::WHITE);
     DrawString(x + 64, y, "N",
-               nes.m_cpu->status & CPU::Flags::N ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::N ? olc::GREEN : olc::RED);
     DrawString(x + 80, y, "V",
-               nes.m_cpu->status & CPU::Flags::V ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::V ? olc::GREEN : olc::RED);
     DrawString(x + 96, y, "-",
-               nes.m_cpu->status & CPU::Flags::U ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::U ? olc::GREEN : olc::RED);
     DrawString(x + 112, y, "B",
-               nes.m_cpu->status & CPU::Flags::B ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::B ? olc::GREEN : olc::RED);
     DrawString(x + 128, y, "D",
-               nes.m_cpu->status & CPU::Flags::D ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::D ? olc::GREEN : olc::RED);
     DrawString(x + 144, y, "I",
-               nes.m_cpu->status & CPU::Flags::I ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::I ? olc::GREEN : olc::RED);
     DrawString(x + 160, y, "Z",
-               nes.m_cpu->status & CPU::Flags::Z ? olc::GREEN : olc::RED);
+               m_nes.m_cpu->status & CPU::Flags::Z ? olc::GREEN : olc::RED);
     DrawString(x + 178, y, "C",
-               nes.m_cpu->status & CPU::Flags::C ? olc::GREEN : olc::RED);
-    DrawString(x, y + 10, "PC: $" + hex(nes.m_cpu->pc, 4));
+               m_nes.m_cpu->status & CPU::Flags::C ? olc::GREEN : olc::RED);
+    DrawString(x, y + 10, "PC: $" + hex(m_nes.m_cpu->pc, 4));
     DrawString(x, y + 20,
-               "A: $" + hex(nes.m_cpu->a, 2) + "  [" + std::to_string(nes.m_cpu->a) +
+               "A: $" + hex(m_nes.m_cpu->a, 2) + "  [" + std::to_string(m_nes.m_cpu->a) +
                    "]");
     DrawString(x, y + 30,
-               "X: $" + hex(nes.m_cpu->x, 2) + "  [" + std::to_string(nes.m_cpu->x) +
+               "X: $" + hex(m_nes.m_cpu->x, 2) + "  [" + std::to_string(m_nes.m_cpu->x) +
                    "]");
     DrawString(x, y + 40,
-               "Y: $" + hex(nes.m_cpu->y, 2) + "  [" + std::to_string(nes.m_cpu->y) +
+               "Y: $" + hex(m_nes.m_cpu->y, 2) + "  [" + std::to_string(m_nes.m_cpu->y) +
                    "]");
-    DrawString(x, y + 50, "Stack P: $" + hex(nes.m_cpu->stkp, 4));
-  }
+    DrawString(x, y + 50, "Stack P: $" + hex(m_nes.m_cpu->stkp, 4));
+	}
 
-  void DrawCode(int x, int y, int nLines) {
-    auto it_a = map_asm.find(nes.m_cpu->pc);
-    int nLineY = (nLines >> 1) * 10 + y;
-    if (it_a != map_asm.end()) {
-      DrawString(x, nLineY, (*it_a).second, olc::CYAN);
-      while (nLineY < (nLines * 10) + y) {
-        nLineY += 10;
-        if (++it_a != map_asm.end()) {
-          DrawString(x, nLineY, (*it_a).second);
-        }
-      }
-    }
+	void DrawCode(int x, int y, int nLines)
+	{
+		auto it_a = map_asm.find(m_nes.m_cpu->pc);
+		int nLineY = (nLines >> 1) * 10 + y;
+		if (it_a != map_asm.end())
+		{
+			DrawString(x, nLineY, (*it_a).second, olc::CYAN);
+			while (nLineY < (nLines * 10) + y)
+			{
+				nLineY += 10;
+				if (++it_a != map_asm.end())
+				{
+					DrawString(x, nLineY, (*it_a).second);
+				}
+			}
+		}
 
-    it_a = map_asm.find(nes.m_cpu->pc);
-    nLineY = (nLines >> 1) * 10 + y;
-    if (it_a != map_asm.end()) {
-      while (nLineY > y) {
-        nLineY -= 10;
-        if (--it_a != map_asm.end()) {
-          DrawString(x, nLineY, (*it_a).second);
-        }
-      }
-    }
-  }
+		it_a = map_asm.find(m_nes.m_cpu->pc);
+		nLineY = (nLines >> 1) * 10 + y;
+		if (it_a != map_asm.end())
+		{
+			while (nLineY > y)
+			{
+				nLineY -= 10;
+				if (--it_a != map_asm.end())
+				{
+					DrawString(x, nLineY, (*it_a).second);
+				}
+			}
+		}
+	}
 
-  bool OnUserCreate() {
-    // Load Program (assembled at https://www.masswerk.at/6502/assembler.html)
-    /*
-            *=$8000
-            LDX #10
-            STX $0000
-            LDX #3
-            STX $0001
-            LDY $0000
-            LDA #0
-            CLC
-            loop
-            ADC $0001
-            DEY
-            BNE loop
-            STA $0002
-            NOP
-            NOP
-            NOP
-    */
+	bool OnUserCreate()
+	{
+		// Load the cartridge
+		m_cart = std::make_shared<Cartridge>("nestest.m_nes");
+		if (!m_cart->ImageValid())
+			return false;
 
-    // Convert hex string into bytes for RAM
-    std::stringstream ss;
-    ss << "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA "
-          "8D 02 00 EA EA EA";
-    uint16_t nOffset = 0x8000;
-    while (!ss.eof()) {
-      std::string b;
-      ss >> b;
-      nes.m_ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
-    }
+		// Insert into NES
+		m_nes.insert_cartridge(m_cart);
+					
+		// Extract dissassembly
+		map_asm = m_nes.m_cpu->disassemble(0x0000, 0xFFFF);
 
-    // Set Reset Vector
-    nes.m_ram[0xFFFC] = 0x00;
-    nes.m_ram[0xFFFD] = 0x80;
+		// Reset NES
+		m_nes.reset();
+		return true;
+	}
 
-    // Dont forget to set IRQ and NMI vectors if you want to play with those
+	bool OnUserUpdate(float elapsed_time)
+	{
+		Clear(olc::DARK_BLUE);
 
-    // Extract dissassembly
-    map_asm = nes.m_cpu->disassemble(0x0000, 0xFFFF);
+		
 
-    // Reset
-    nes.m_cpu->reset();
-    return true;
-  }
+		if (is_running)
+		{
+			if (residual_time > 0.0f)
+				residual_time -= elapsed_time;
+			else
+			{
+				residual_time += (1.0f / 60.0f) - elapsed_time;
+				do { m_nes.clock(); } while (!m_nes.m_ppu->m_is_frame_complete);
+				m_nes.m_ppu->m_is_frame_complete = false;
+			}
+		}
+		else
+		{
+			// Emulate code step-by-step
+			if (GetKey(olc::Key::C).bPressed)
+			{
+				// Clock enough times to execute a whole CPU instruction
+				do { m_nes.clock(); } while (!m_nes.m_cpu->is_complete());
+				// CPU clock runs slower than system clock, so it may be
+				// complete for additional system clock cycles. Drain
+				// those out
+				do { m_nes.clock(); } while (m_nes.m_cpu->is_complete());
+			}
 
-  bool OnUserUpdate(float fElapsedTime) {
-    Clear(olc::DARK_BLUE);
+			// Emulate one whole frame
+			if (GetKey(olc::Key::F).bPressed)
+			{
+				// Clock enough times to draw a single frame
+				do { m_nes.clock(); } while (!m_nes.m_ppu->m_is_frame_complete);
+				// Use residual clock cycles to complete current instruction
+				do { m_nes.clock(); } while (!m_nes.m_cpu->is_complete());
+				// Reset frame completion flag
+				m_nes.m_ppu->m_is_frame_complete = false;
+			}
+		}
 
-    if (GetKey(olc::Key::SPACE).bPressed) {
-      do {
-        nes.m_cpu->clock();
-      } while (!nes.m_cpu->is_complete());
-    }
 
-    if (GetKey(olc::Key::R).bPressed)
-      nes.m_cpu->reset();
+		if (GetKey(olc::Key::SPACE).bPressed) is_running = !is_running;
+		if (GetKey(olc::Key::R).bPressed) m_nes.reset();		
 
-    if (GetKey(olc::Key::I).bPressed)
-      nes.m_cpu->irq();
+		DrawCpu(516, 2);
+		DrawCode(516, 72, 26);
 
-    if (GetKey(olc::Key::N).bPressed)
-      nes.m_cpu->nmi();
-
-    // Draw Ram Page 0x00
-    DrawRam(2, 2, 0x0000, 16, 16);
-    DrawRam(2, 182, 0x8000, 16, 16);
-    DrawCpu(448, 2);
-    DrawCode(448, 72, 26);
-
-    DrawString(10, 370,
-               "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI");
-
-    return true;
-  }
+		DrawSprite(0, 0, &m_nes.m_ppu.get_screen(), 2);
+		return true;
+	}
 };
 
-auto main() -> int {
-  CPUDemo demo;
-  demo.Construct(256, 240, 4, 4);
-  demo.Start();
-  return 0;
+int main()
+{
+	Demo_olc2C02 demo;
+	demo.Construct(780, 480, 2, 2);
+	demo.Start();
+	return 0;
 }

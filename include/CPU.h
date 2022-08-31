@@ -9,7 +9,6 @@
 #include "Bus.h"
 
 #include <map>
-#include <array>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -18,11 +17,6 @@ class Bus;
 
 class CPU final {
 
-private: 
-  std::array<std::array<uint8_t, 1024>, 2> table_name{};
-  std::array<uint8_t, 32> table_pallette{};
-  std::array<std::array<uint8_t, 4096>, 2> table_pattern {};
-  
 public:
   CPU() = default;
   ~CPU() = default;

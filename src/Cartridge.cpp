@@ -1,6 +1,7 @@
 #include "Cartridge.h"
 #include "Mappers.h"
 
+#include <cstdint>
 #include <fstream>
 
 Cartridge::Cartridge(const std::string &fname) {
@@ -53,7 +54,7 @@ auto Cartridge::read_cpu(uint16_t address, uint8_t &data)
     -> bool {
         
         uint32_t mapped_addr = 0;
-        if(m_mapper -> read_cpu(addr, mapped_addr)){
+        if(m_mapper -> read_cpu(address, mapped_addr)){
             data = m_prg_memory[mapped_addr];
             return true;
         }
@@ -63,7 +64,7 @@ auto Cartridge::read_cpu(uint16_t address, uint8_t &data)
 
 auto Cartridge::write_cpu(uint16_t address, uint8_t data) -> bool {
   uint32_t mapped_addr = 0;
-  if (m_mapper->write_cpu(addr, mapped_addr)) {
+  if (m_mapper->write_cpu(address, mapped_addr)) {
     m_prg_memory[mapped_addr] = data;
     return true;
   }
@@ -75,7 +76,7 @@ auto Cartridge::read_ppu(uint16_t address, uint8_t &data)
     -> bool {
 
   uint32_t mapped_addr = 0;
-  if (m_mapper->read_ppu(addr, mapped_addr)) {
+  if (m_mapper->read_ppu(address, mapped_addr)) {
     data = m_chr_memory[mapped_addr];
     return true;
   }
@@ -85,7 +86,7 @@ auto Cartridge::read_ppu(uint16_t address, uint8_t &data)
 
 auto Cartridge::write_ppu(uint16_t address, uint8_t data) -> bool {
   uint32_t mapped_addr = 0;
-  if (m_mapper->write_ppu(addr, mapped_addr)) {
+  if (m_mapper->write_ppu(address, mapped_addr)) {
     m_chr_memory[mapped_addr] = data;
     return true;
   }

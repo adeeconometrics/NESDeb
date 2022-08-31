@@ -7,7 +7,7 @@
 
 class Mapper {
 public:
-  Mapper() = delete;
+  // Mapper() = delete;
   Mapper(const Mapper &) = delete;
   Mapper(Mapper &&) = delete;
 
@@ -31,10 +31,12 @@ protected:
 class Mapper_000: public Mapper {
 
 public:
-  auto read_cpu(uint16_t address, uint32_t &mapped_addr) override -> bool;
-  auto write_cpu(uint16_t address, uint32_t &mapped_addr) override -> bool;
-  auto read_ppu(uint16_t address, uint32_t &mapped_addr) override -> bool;
-  auto write_ppu(uint16_t address, uint32_t &mapped_addr) override -> bool;
+  Mapper_000(uint8_t prg_banks, uint8_t char_bank);
+
+  auto read_cpu(uint16_t address, uint32_t &mapped_addr) -> bool override;
+  auto write_cpu(uint16_t address, uint32_t &mapped_addr) -> bool override;
+  auto read_ppu(uint16_t address, uint32_t &mapped_addr) -> bool override;
+  auto write_ppu(uint16_t address, uint32_t &mapped_addr) -> bool override;
 };
 
 #endif // __MAPPERS_H__
