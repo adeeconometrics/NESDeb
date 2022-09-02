@@ -1,16 +1,17 @@
 #ifndef __CARTRIDGE_H__
 #define __CARTRIDGE_H__
 
-#include "Mappers.h"
+#include "Mappers.hpp"
 
+#include <array>
 #include <cstdint>
 #include <memory>
-#include <vector>
 #include <string>
-#include <array>
+#include <vector>
+
 
 class Cartridge {
-private: 
+private:
   struct Header {
     uint8_t prg_rom_chunks;
     uint8_t chr_rom_chunks;
@@ -24,19 +25,18 @@ private:
   } header;
 
 public:
-  Cartridge(const std::string& fname);
+  Cartridge(const std::string &fname);
   ~Cartridge() = default;
 
-  auto read_cpu(uint16_t address, uint8_t& data) -> bool;
+  auto read_cpu(uint16_t address, uint8_t &data) -> bool;
   auto write_cpu(uint16_t address, uint8_t data) -> bool;
 
-  auto read_ppu(uint16_t address, uint8_t& data) -> bool;
+  auto read_ppu(uint16_t address, uint8_t &data) -> bool;
   auto write_ppu(uint16_t address, uint8_t data) -> bool;
 
-  auto is_valid_image() -> bool; 
+  auto is_valid_image() -> bool;
 
-private: 
-
+private:
   std::shared_ptr<Mapper> m_mapper;
   std::vector<uint8_t> m_prg_memory;
   std::vector<uint8_t> m_chr_memory;

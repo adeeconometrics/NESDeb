@@ -6,12 +6,13 @@
  *
  */
 
-#include "Bus.h"
+#include "Bus.hpp"
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
-#include <cstdint>
+
 
 class Bus;
 
@@ -108,7 +109,8 @@ public:
 
   auto fetch() -> uint8_t;
   auto is_complete() -> bool;
-  auto disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::string>;
+  auto disassemble(uint16_t start, uint16_t stop)
+      -> std::map<uint16_t, std::string>;
 
 public:
   enum class Flags : uint8_t {
@@ -131,12 +133,12 @@ public:
 
 public:
   friend auto operator|(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t;
-  friend auto operator|(uint8_t lhs, CPU::Flags rhs) -> uint8_t; 
+  friend auto operator|(uint8_t lhs, CPU::Flags rhs) -> uint8_t;
   friend auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t;
-  friend auto operator&(uint8_t lhs, CPU::Flags rhs) -> uint8_t; 
+  friend auto operator&(uint8_t lhs, CPU::Flags rhs) -> uint8_t;
   friend auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t;
   friend auto operator~(CPU::Flags rhs) -> uint8_t;
-  friend auto operator|=(uint8_t& lhs, CPU::Flags rhs) -> void; 
+  friend auto operator|=(uint8_t &lhs, CPU::Flags rhs) -> void;
 
 private:
   auto get_flag(CPU::Flags flag) -> uint8_t;

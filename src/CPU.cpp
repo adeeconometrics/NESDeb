@@ -1,8 +1,10 @@
-#include "CPU.h"
+#include "../include/CPU.hpp"
+
+#include <cstdint>
 #include <map>
 #include <string>
-#include <cstdint>
 #include <type_traits>
+
 
 auto CPU::connect(Bus *bus) -> void { m_bus = bus; }
 
@@ -49,7 +51,7 @@ auto operator&(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t {
 
 auto operator&(uint8_t lhs, CPU::Flags rhs) -> uint8_t {
   return lhs & static_cast<uint8_t>(
-      static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
+                   static_cast<std::underlying_type_t<CPU::Flags>>(rhs));
 }
 
 auto operator^(CPU::Flags lhs, CPU::Flags rhs) -> uint8_t {
@@ -850,11 +852,10 @@ auto CPU::fetch() -> uint8_t {
   return fetched;
 }
 
-auto CPU::is_complete() -> bool {
-  return cycles == 0;
-}
+auto CPU::is_complete() -> bool { return cycles == 0; }
 
-auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::string> {
+auto CPU::disassemble(uint16_t start, uint16_t stop)
+    -> std::map<uint16_t, std::string> {
   uint8_t high = 0x00;
   uint8_t low = 0x00;
   uint8_t value = 0x00;
@@ -874,7 +875,7 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     return s;
   };
 
-  while(addr <= last_addr) {
+  while (addr <= last_addr) {
     line_addr = addr;
 
     std::string instruction = "$" + hex(addr, 4) + ": ";
@@ -886,20 +887,20 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //   case &CPU::IMP: {
     //     instruction += " {IMP}";
     //   } break;
-      
+
     //   case &CPU::IMM: {
-    //     value = m_bus->read_cpu(current_addr); 
+    //     value = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction += "#$" + hex(value, 2) + " {IMM}";
     //   } break;
-      
+
     //   case &CPU::ZP0: {
-    //     low = m_bus->read_cpu(current_addr); 
+    //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     high = 0x00;
     //     instruction += "$" + hex(low, 2) + " {ZP0}";
     //   } break;
-      
+
     //   case &CPU::ZPX: {
     //     low = m_bus-> read(current_addr);
     //     current_addr++;
@@ -913,7 +914,7 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //     high = 0x00;
     //     instruction += "$" + hex(low, 2) + ", Y {ZPY}";
     //   } break;
-      
+
     //   case &CPU::IZX: {
     //     low = m_bus->read_cpu(current_addr);
     //     current_addr++;
@@ -933,7 +934,8 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //     current_addr++;
     //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
-    //     instruction += "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + " {ABS}";
+    //     instruction += "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) +
+    //     " {ABS}";
     //   } break;
 
     //   case &CPU::ABX: {
@@ -942,7 +944,8 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction +=
-    //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", X {ABX}";
+    //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", X
+    //         {ABX}";
     //   } break;
 
     //   case &CPU::ABY: {
@@ -951,7 +954,8 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction +=
-    //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", Y {ABY}";
+    //         "$" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ", Y
+    //         {ABY}";
     //   } break;
 
     //   case &CPU::IND: {
@@ -960,16 +964,18 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     //     high = m_bus->read_cpu(current_addr);
     //     current_addr++;
     //     instruction +=
-    //         "($" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ") {IND}";
+    //         "($" + hex(static_cast<uint16_t>(high << 8) | low, 4) + ")
+    //         {IND}";
     //   } break;
 
     //   case &CPU::REL: {
     //     value = m_bus->read_cpu(current_addr);
     //     current_addr++;
-    //     instruction += "$" + hex(value, 2) + " [$" + hex(current_addr + value, 4) + "] {REL}";
+    //     instruction += "$" + hex(value, 2) + " [$" + hex(current_addr +
+    //     value, 4) + "] {REL}";
     //   } break;
 
-    //   default: 
+    //   default:
     //     break;
     // }
 
@@ -1031,7 +1037,8 @@ auto CPU::disassemble(uint16_t start, uint16_t stop) -> std::map<uint16_t, std::
     } else if (lookup[opcode].address_mode == &CPU::REL) {
       value = m_bus->read_cpu(addr);
       addr++;
-      instruction += "$" + hex(value, 2) + " [$" + hex(addr + (int8_t)value, 4) + "] {REL}";
+      instruction += "$" + hex(value, 2) + " [$" +
+                     hex(addr + (int8_t)value, 4) + "] {REL}";
     }
 
     result[line_addr] = instruction;
