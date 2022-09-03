@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <fstream>
 
-Cartridge::Cartridge(const std::string &fname) {
+Cartridge::Cartridge(const std::string &fname) : header{} {
   std::ifstream stream;
   stream.open(fname, std::ifstream::binary);
 

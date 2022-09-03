@@ -5,11 +5,9 @@
 #include "Cartridge.hpp"
 #include "PPU.hpp"
 
-
 #include <array>
 #include <cstdint>
 #include <memory>
-
 
 class Cartridge;
 class CPU;

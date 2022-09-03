@@ -14,8 +14,8 @@ public:
   Mapper(uint8_t prg_banks, uint8_t char_bank);
   virtual ~Mapper() = default;
 
-  auto operator=(const Mapper&) -> Mapper& = delete;
-  auto operator=(Mapper&&) -> Mapper& = delete;
+  auto operator=(const Mapper &) -> Mapper & = delete;
+  auto operator=(Mapper &&) -> Mapper & = delete;
 
   virtual auto read_cpu(uint16_t address, uint32_t &mapped_addr) -> bool = 0;
   virtual auto write_cpu(uint16_t address, uint32_t &mapped_addr) -> bool = 0;
@@ -28,7 +28,7 @@ protected:
   uint8_t m_char_banks{};
 };
 
-class Mapper_000: public Mapper {
+class Mapper_000 : public Mapper {
 
 public:
   Mapper_000(uint8_t prg_banks, uint8_t char_bank);

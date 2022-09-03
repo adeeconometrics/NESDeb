@@ -100,7 +100,7 @@ private:
     }
   }
 
-  bool OnUserCreate() {
+  bool OnUserCreate() override {
     // Load the cartridge
     m_cart = std::make_shared<Cartridge>("nestest.m_nes");
     if (!m_cart->is_valid_image())
@@ -117,7 +117,7 @@ private:
     return true;
   }
 
-  bool OnUserUpdate(float elapsed_time) {
+  bool OnUserUpdate(float elapsed_time) override {
     Clear(olc::DARK_BLUE);
 
     if (is_running) {

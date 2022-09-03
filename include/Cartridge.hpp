@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 
-
 class Cartridge {
 private:
   struct Header {

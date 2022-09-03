@@ -5,7 +5,6 @@
 #include <string>
 #include <type_traits>
 
-
 auto CPU::connect(Bus *bus) -> void { m_bus = bus; }
 
 auto CPU::read(uint16_t addr) -> uint8_t { return m_bus->read_cpu(addr); }
