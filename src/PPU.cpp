@@ -82,9 +82,9 @@ auto PPU::clock() -> void {
 auto PPU::get_screen() -> olc::Sprite & { return m_screen; }
 
 auto PPU::get_table_name(uint8_t i) -> olc::Sprite & {
-  return m_spr_table_name[i];
+  return m_spr_table_name.at(i);
 }
 
 auto PPU::get_table_pattern(uint8_t i) -> olc::Sprite & {
-  return m_spr_table_pattern[i];
+  return m_spr_table_pattern.at(i);
 }
