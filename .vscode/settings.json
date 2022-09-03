@@ -1,0 +1,13 @@
+{
+    "editor.fontSize": 12,
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "files.associations": {
+        "sstream": "cpp"
+    },
+    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+        "cppcoreguidelines-avoid-magic-numbers"
+    ],
+    "editor.lineNumbers": "relative"
+}
